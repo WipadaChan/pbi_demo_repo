@@ -24,8 +24,9 @@ This demo will simulate stream data by reading from file. Do data transformation
 5. Comparing the different when we add a Checkpoint ()
 6. Create Power BI streaming dataset API
 7. Push stream to Power BI API 
-(all of this step will be in databrick notebook )
-### Let's do this 
+(all of these steps are in databrick notebook **readStreamFromFile.dbc**)
+
+## Let's do this 
 
 ### Step 1. Define input path of files location
 I have a folder of JSON files that mount to my Azure Databricks cluster as below location. You can change to your own folder. 
