@@ -1,10 +1,10 @@
-# Real Time Dashboard with Azure Databricks 
+# Power BI Real Time Dashboard with Azure Databricks 
 In this demo we will Spark Streaming Structure to read stream from files. Then we do some aggregation or transformation before push stream data to Power BI.
 
 ## Streaming Dataset in Power BI 
 There are 3 ways to create streaming dataset as below: 
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/streamtype.PNG "Streaming Dataset") 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamtype.PNG "Streaming Dataset") 
 
 In this demo we will use stream dataset from API.
 
@@ -24,6 +24,7 @@ This demo will simulate stream data by reading from file. Do data transformation
 5. Comparing the different when we add a Checkpoint ()
 6. Create Power BI streaming dataset API
 7. Push stream to Power BI API 
+(all of this step will be in databrick notebook )
 ### Let's do this 
 
 ### Step 1. Define input path of files location
@@ -100,7 +101,7 @@ With this call fucntion in ForeachBatch, you will see aggreagation result print 
 
 ### Step 5. Comparing the different when we add a Checkpoint ()
 Define path location where you want to store check point. It can be local DBFS path or Azure storage account.
-
+This demo connects to Azure datalake storage gen2 (ADLS Gen2)
 ```python
 checkpoint = "abfss://mycontainer@mystorageaccount.dfs.core.windows.net/directoryname/streamfile/"
 ```
@@ -121,4 +122,83 @@ You can press cancel now and rerun the code again. Now it will start from the la
 
 
 ### Step 6. Create Power BI streaming dataset API
-Our output from agg dataframe consist of 2 columns: 'eventName' and 'count' where the data type is text and numeric respectively. 
+Our output from **agg** dataframe consist of 2 columns: **'eventName'** and **'count'** where the data type is text and number respectively. 
+Here is the structure of our stream dataset where we will create in Power Bi as follow the step here
+https://docs.microsoft.com/en-us/power-bi/connect-data/service-real-time-streaming#pushing-data-to-datasets 
+#### Note that the column name in Power BI Stream dataset and your streaming dataframe should be exactly matched. 
+
+#### Define column name and type 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDataset.PNG "Streaming Dataset") 
+
+Once it done you will get a URL, copy **Push URL**
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDatasetdone.PNG "Streaming Dataset") 
+
+### Step 7. Push stream to Power BI API 
+#### Implement function to work with foreachBatch 
+Power BI require JSON string that need to be **wrap** with array
+**foreachBatch** will return **DataFrame** and Epoch_id 
+
+So the step in function will be:
+..1.convert dataframe to json 
+..2.convert to string and wrap with []
+..3.push to POST request to Power BI API
+
+
+```python
+import requests
+import datetime as dt
+import pandas as pd
+from pyspark.sql.functions import lit,unix_timestamp
+import time
+import datetime
+
+def sendToBi (data):
+  data_str = data
+  newHeaders = {'Content-type': 'application/json'}
+  response = requests.post('YOUR PUSH URL',
+                         data=data_str,
+                         headers=newHeaders)
+  return print("Status code: ", response.status_code)
+
+from pyspark.sql.functions import lit,unix_timestamp
+import time
+import datetime
+
+
+def convertdf (df):
+  df=df.na.fill("Null")
+  df2 = df.toJSON().collect()
+  str1 = ''.join(df2)
+  str1=str1.replace("}{","},{") 
+  print("[" + str1 +"]") #this is optional
+  return "[" + str1 +"]" #wrap with array
+  
+def batchstr(df, epoch_id):
+    sendToBi(convertdf(df))
+    pass
+```
+
+### Now push stream data to Power BI 
+```python
+(agg.orderBy(col('count').desc())
+  .writeStream
+  .outputMode('complete')
+  .option("checkpointLocation", checkpoint)
+  .foreachBatch(batchstr)
+  .start().awaitTermination())
+  ```
+
+### In Power BI Service 
+You can now create streaming chart into a Dashboard, by adding tile to your dashboard and select ** Custom Streaming Data** 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addtile.PNG) 
+
+Then select dataset, you've just created:
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addDataset.PNG) 
+
+Select visualization type yopu want to add on a dashboard:
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/vizType.PNG) 
+
+Once it's done, you will see your chart with lighing icon indicate that this visual is real time streaming. 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/result.PNG) 
+
+      **  Thank You ** 
