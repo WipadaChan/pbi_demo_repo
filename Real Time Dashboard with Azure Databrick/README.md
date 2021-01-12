@@ -128,9 +128,11 @@ https://docs.microsoft.com/en-us/power-bi/connect-data/service-real-time-streami
 #### Note that the column name in Power BI Stream dataset and your streaming dataframe should be exactly matched. 
 
 #### Define column name and type 
+
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDataset.PNG "Streaming Dataset") 
 
 Once it done you will get a URL, copy **Push URL**
+
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDatasetdone.PNG "Streaming Dataset") 
 
 ### Step 7. Push stream to Power BI API 
@@ -193,12 +195,15 @@ You can now create streaming chart into a Dashboard, by adding tile to your dash
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addtile.PNG) 
 
 Then select dataset, you've just created:
+
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addDataset.PNG) 
 
 Select visualization type yopu want to add on a dashboard:
+
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/vizType.PNG) 
 
 Once it's done, you will see your chart with lighing icon indicate that this visual is real time streaming. 
+
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/result.PNG) 
 
-      **  Thank You ** 
+**Thank You** 
