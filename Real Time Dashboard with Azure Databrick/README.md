@@ -146,9 +146,9 @@ Power BI require JSON string that need to be **wrap** with array
 **foreachBatch** will return **DataFrame** and Epoch_id 
 
 So the step in function will be:
-1.convert dataframe to json 
-2.convert to string and wrap with []
-3.push to POST request to Power BI API
+1. convert dataframe to json 
+2. convert to string and wrap with []
+3. push to POST request to Power BI API
 
 
 ```python
