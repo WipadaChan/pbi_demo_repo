@@ -29,7 +29,7 @@ This demo will simulate stream data by reading from file. Do data transformation
 ## Let's do this 
 
 ### Step 1. Define input path of files location
-I have a folder of JSON files that mount to my Azure Databricks cluster as below location. You can change to your own folder. 
+I have a folder of JSON files that mount to my Azure Databricks cluster as below location. You can change to your own data file location. 
 
 ```python
 # Enter your file path
@@ -37,6 +37,9 @@ inputPath = "/mnt/training/gaming_data/mobile_streaming_events"
 ```
 
 ### Step 2. Define input stream structure, how and where we read the input
+
+Here is input structure for the file in my **inputPath**, you can change this part according to your data.
+
 ```python
 # Define structure 
 from pyspark.sql.types import StructType, StringType, IntegerType, TimestampType, DoubleType
@@ -65,6 +68,7 @@ gamingEventDF = (spark
   .json(inputPath) 
 )
 ```
+
 ### Step 3. Doing Aggregation
 This one is optional, if you want to read directly from stream you can skip this step. 
 Note that when doing aggregation on streaming data, it required to write in complete mode. 
@@ -98,7 +102,7 @@ Apply **simpleshow** fucntion to **foreachBatch**
   .start().awaitTermination()
   ) 
 ```
-With this call fucntion in ForeachBatch, you will see aggreagation result print out in your notebook and see how microbatch concept work in Spark Structure Streaming.
+With this call fucntion in ForeachBatch, you will see aggreagation result print out in your notebook and see how microbatch concept work in Spark Structured Streaming.
 
 ### Step 5. Comparing the different when we add a Checkpoint ()
 Define path location where you want to store check point. It can be local DBFS path or Azure storage account.
@@ -118,15 +122,15 @@ query = (agg.orderBy(col('count').desc())
   .start().awaitTermination()
         ) 
 ```
-Since the first read we do not have **Checkpoint**. So it will start reading from the **Frist file** again.
+Since the first read we do not have **Checkpoint**. So it will start reading from the **frist file** again.
 You can press cancel now and rerun the code again. Now it will start from the last point, we left. 
 
 
 ### Step 6. Create Power BI streaming dataset API
 Our output from **agg** dataframe consist of 2 columns: **'eventName'** and **'count'** where the data type is text and number respectively. 
-Here is the structure of our stream dataset where we will create in Power Bi as follow the step here
+Here is the structure of our stream dataset where we will create in Power BI as follow the step here
 https://docs.microsoft.com/en-us/power-bi/connect-data/service-real-time-streaming#pushing-data-to-datasets 
-#### Note that the column name in Power BI Stream dataset and your streaming dataframe should be exactly matched. 
+#### Note that the column name in Power BI Stream dataset and your streaming dataframe should be exactly the same. 
 
 #### Define column name and type 
 
@@ -142,9 +146,9 @@ Power BI require JSON string that need to be **wrap** with array
 **foreachBatch** will return **DataFrame** and Epoch_id 
 
 So the step in function will be:
-..1.convert dataframe to json 
-..2.convert to string and wrap with []
-..3.push to POST request to Power BI API
+1.convert dataframe to json 
+2.convert to string and wrap with []
+3.push to POST request to Power BI API
 
 
 ```python
@@ -192,7 +196,7 @@ def batchstr(df, epoch_id):
   ```
 
 ### In Power BI Service 
-You can now create streaming chart into a Dashboard, by adding tile to your dashboard and select ** Custom Streaming Data** 
+You can now create streaming chart into a Dashboard, by adding tile to your dashboard and select **Custom Streaming Data** 
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addtile.PNG) 
 
 Then select dataset, you've just created:
@@ -203,7 +207,7 @@ Select visualization type yopu want to add on a dashboard:
 
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/vizType.PNG) 
 
-Once it's done, you will see your chart with lighing icon indicate that this visual is real time streaming. 
+Once it's done, you will see your chart with lightning icon indicate that this visual is real time streaming. 
 
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/result.PNG) 
 
