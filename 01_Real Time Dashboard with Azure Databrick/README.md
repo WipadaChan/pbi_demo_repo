@@ -4,7 +4,7 @@ In this demo we will Spark Streaming Structure to read stream from files. Then w
 ## Streaming Dataset in Power BI 
 There are 3 ways to create streaming dataset as below: 
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamtype.PNG "Streaming Dataset") 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamtype.PNG "Streaming Dataset") 
 
 In this demo we will use stream dataset from API.
 
@@ -134,11 +134,11 @@ https://docs.microsoft.com/en-us/power-bi/connect-data/service-real-time-streami
 
 #### Define column name and type 
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDataset.PNG "Streaming Dataset") 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDataset.PNG "Streaming Dataset") 
 
 Once it done you will get a URL, copy **Push URL**
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDatasetdone.PNG "Streaming Dataset") 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDatasetdone.PNG "Streaming Dataset") 
 
 ### Step 7. Push stream to Power BI API 
 #### Implement function to work with foreachBatch 
@@ -197,18 +197,18 @@ def batchstr(df, epoch_id):
 
 ### In Power BI Service 
 You can now create streaming chart into a Dashboard, by adding tile to your dashboard and select **Custom Streaming Data** 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addtile.PNG) 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addtile.PNG) 
 
 Then select dataset, you've just created:
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addDataset.PNG) 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addDataset.PNG) 
 
 Select visualization type yopu want to add on a dashboard:
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/vizType.PNG) 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/vizType.PNG) 
 
 Once it's done, you will see your chart with lightning icon indicate that this visual is real time streaming. 
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/result.PNG) 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/result.PNG) 
 
 **Thank You** 
