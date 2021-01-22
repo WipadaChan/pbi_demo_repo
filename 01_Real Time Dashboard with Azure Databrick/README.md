@@ -159,7 +159,7 @@ from pyspark.sql.functions import lit,unix_timestamp
 import time
 import datetime
 
-def sendToBi (data):
+def sendToPBI (data):
   data_str = data
   newHeaders = {'Content-type': 'application/json'}
   response = requests.post('YOUR PUSH URL',
@@ -181,7 +181,7 @@ def convertdf (df):
   return "[" + str1 +"]" #wrap with array
   
 def batchstr(df, epoch_id):
-    sendToBi(convertdf(df))
+    sendToPBI(convertdf(df))
     pass
 ```
 
