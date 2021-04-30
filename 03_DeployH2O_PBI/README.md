@@ -1,225 +1,190 @@
 # Deploy H2O Model to Azure ML and Use with Power BI
 This demo will show you how to deploy existing Machine Learning model that trained from H2O to Azure ML. Then use deployed model to score new data in Power BI.
 
-
 ## Pre-requisite:
 1. Azure ML Workspace.
 ![alt text](https://docs.microsoft.com/en-us/azure/machine-learning/media/how-to-manage-workspace/create-workspace.gif  "Create azure ml") 
+
 2. Trained H2O model 
-3. Power BI Desktop
-
-
+3. Enable Power BI user to access AzureML (by add user via IAM of AzureML Workspace and give a Reader Role)
+ 
 
 ## Train K-Mean Clustering Model with H2O
-Here is the example code for training H2O model. You can find the full notebook in below path 
+Here is an example code for model training with H2O. You can find the full notebook in below path 
 
 [Create Customer Segment Model with H2O](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/Customer%20Segment.ipynb)
 
 
+### Key I would like to point here is location of the train model in your local machine.
+This will be the location where you need to use in model deployment. 
+
+```python
+# Save Model
+path = 'H2o'
+model_path = h2o.save_model(model=h2o_km, path=path, force=True)
+print(model_path)
+```
+Here is the path where H2O model is stored 
+"..\H2o\KMeans_model_python_1619773255297_1"
 
 
+## Deploy Model to Azure ML and make it accessible by Power BI
+The step below will consist of:
+1. Connecting to AzureML workspace
+2. Register Model
+3. Prepare Docker and dependency library
+4. Prepare Score.py script
+5. Deploy to ACI webservice
 
-
-
-In this demo we will use stream dataset from API.
-
-
- 
+Full script can find [here](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/DeployModel.ipynb)
 
 ## Step:
-This demo will simulate stream data by reading from file. Do data transformation before pushing result via Power BI streaming dataset API. 
-1. Define input path of files location
-2. Define input stream structure, how and where we read the input
-3. Doing aggregation 
-4. Define Stream query by writing stream output to notebook
-5. Comparing the different when we add a Checkpoint ()
-6. Create Power BI streaming dataset API
-7. Push stream to Power BI API 
-(all of these steps are in databrick notebook **readStreamFromFile.dbc**)
-
-## Let's do this 
-
-### Step 1. Define input path of files location
-I have a folder of JSON files that mount to my Azure Databricks cluster as below location. You can change to your own data file location. 
-
+### 1. Using AzureML.Core library to connect to your AzureML Workspace
 ```python
-# Enter your file path
-inputPath = "/mnt/training/gaming_data/mobile_streaming_events"
+# azureml-core of version 1.0.72 or higher is required
+# azureml-dataprep[pandas] of version 1.1.34 or higher is required
+from azureml.core import Workspace, Dataset
+
+subscription_id = 'XXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+resource_group = 'ResourceGroupName'
+workspace_name = 'AzureMLWorkspaceName'
+
+ws = Workspace.get(name=workspace_name, subscription_id=subscription_id, resource_group=resource_group )
 ```
 
-### Step 2. Define input stream structure, how and where we read the input
-
-Here is input structure for the file in my **inputPath**, you can change this part according to your data.
-
+### 2. Register your model from local machine to AzureML
 ```python
-# Define structure 
-from pyspark.sql.types import StructType, StringType, IntegerType, TimestampType, DoubleType
-from pyspark.sql.functions import col, to_date
-
-eventSchema = ( StructType()
-  .add('eventName', StringType()) 
-  .add('eventParams', StructType() 
-    .add('game_keyword', StringType()) 
-    .add('app_name', StringType()) 
-    .add('scoreAdjustment', IntegerType()) 
-    .add('platform', StringType()) 
-    .add('app_version', StringType()) 
-    .add('device_id', StringType()) 
-    .add('client_event_time', TimestampType()) 
-    .add('amount', DoubleType()) 
-  )     
-)
-
-# load stream from file 
-gamingEventDF = (spark
-  .readStream
-  .schema(eventSchema) # Specify defined schema
-  .option('streamName','mobilestreaming_demo') 
-  .option("maxFilesPerTrigger", 1)              # treat each file as Trigger event
-  .json(inputPath) 
-)
+from azureml.core.model import Model
+# Here is where you specify location of your stored H2O model
+model = Model.register(model_path="H2o/KMeans_model_python_1619773255297_1",
+                          model_name="CustomerSegment",
+                          description="Classify customer segment use K-Means Clustering",
+                          workspace=ws)
 ```
 
-### Step 3. Doing Aggregation
-This one is optional, if you want to read directly from stream you can skip this step. 
-Note that when doing aggregation on streaming data, it required to write in complete mode. 
+### 3. Prepare Environment and its dependency 
+Due to this demo using H2O model therefore it requires specific set of enviroment configuration. 
 ```python
-# Doing sum aggregation 
-agg = (gamingEventDF
-        .groupBy('eventName')
-        .count())
-```
-### Step 4. Define Stream query by writing stream output to notebook
-#### ForeachBatch
-Since we need to take the stream and push the stream via API. So we need a function the interact with the stream
-We can apply our custom function with **ForeachBatch** (Micro Batch of Streamed data) or **Foreach** (row of  Streamed data)
-##### Below we create simple function to work with Micro Batch of Streamed data
+from azureml.core import Environment
+#Prepare Docker and required dependency 
+myenv = Environment(name="myenv")
+myenv.docker.enabled = True
 
-```python
-# Define simple function to test with ForeachBatch
-def simpleshow(df, epoch_id):
-    print("epoch_id: " + str(epoch_id))
-    df.show()
-    pass
-```
+# Specify docker steps as a string.
+dockerfile = r'''
+FROM mcr.microsoft.com/azureml/intelmpi2018.3-ubuntu16.04
 
-Apply **simpleshow** fucntion to **foreachBatch** 
+# Install OpenJDK-8
+RUN apt-get update && \
+    apt-get install -y openjdk-8-jdk && \
+    apt-get install -y ant && \
+    apt-get clean;
 
-```python
-(agg.orderBy(col('count').desc())
-  .writeStream
-  .outputMode('complete')
-  .foreachBatch(simpleshow)
-  .start().awaitTermination()
-  ) 
-```
-With this call fucntion in ForeachBatch, you will see aggreagation result print out in your notebook and see how microbatch concept work in Spark Structured Streaming.
+# Fix certificate issues
+RUN apt-get update && \
+    apt-get install ca-certificates-java && \
+    apt-get clean && \
+    update-ca-certificates -f;
 
-### Step 5. Comparing the different when we add a Checkpoint ()
-Define path location where you want to store check point. It can be local DBFS path or Azure storage account.
-This demo connects to Azure datalake storage gen2 (ADLS Gen2)
-```python
-checkpoint = "abfss://mycontainer@mystorageaccount.dfs.core.windows.net/directoryname/streamfile/"
-```
-#### Read with checkpoint
+# Setup JAVA_HOME -- useful for docker commandline
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN export JAVA_HOME
 
-```python
-# Adding check point 
-query = (agg.orderBy(col('count').desc())
-  .writeStream
-  .outputMode('complete')
-  .option("checkpointLocation", checkpoint) 
-  .foreachBatch(simpleshow)
-  .start().awaitTermination()
-        ) 
-```
-Since the first read we do not have **Checkpoint**. So it will start reading from the **frist file** again.
-You can press cancel now and rerun the code again. Now it will start from the last point, we left. 
+# Install H2O on python requirements
+RUN pip install requests && \
+    pip install tabulate && \
+    pip install six && \
+    pip install future && \
+    pip install colorama
 
+# Expose H2O Flow UI port
+EXPOSE 54321
 
-### Step 6. Create Power BI streaming dataset API
-Our output from **agg** dataframe consist of 2 columns: **'eventName'** and **'count'** where the data type is text and number respectively. 
-Here is the structure of our stream dataset where we will create in Power BI as follow the step here
-https://docs.microsoft.com/en-us/power-bi/connect-data/service-real-time-streaming#pushing-data-to-datasets 
-#### Note that the column name in Power BI Stream dataset and your streaming dataframe should be exactly the same. 
+# Install H2O
+RUN \
+    pip uninstall h2o || true && \
+    pip install -f http://h2o-release.s3.amazonaws.com/h2o/latest_stable_Py.html --trusted-host h2o-release.s3.amazonaws.com h2o
 
-#### Define column name and type 
+'''
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDataset.PNG "Streaming Dataset") 
+# Alternatively, load from a file.
+#with open("dockerfiles/Dockerfile", "r") as f:
+#    dockerfile=f.read()
 
-Once it done you will get a URL, copy **Push URL**
+myenv.docker.base_dockerfile = dockerfile
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/streamDatasetdone.PNG "Streaming Dataset") 
-
-### Step 7. Push stream to Power BI API 
-#### Implement function to work with foreachBatch 
-Power BI require JSON string that need to be **wrap** with array
-**foreachBatch** will return **DataFrame** and Epoch_id 
-
-So the step in function will be:
-1. convert dataframe to json 
-2. convert to string and wrap with []
-3. push to POST request to Power BI API
-
-
-```python
-import requests
-import datetime as dt
-import pandas as pd
-from pyspark.sql.functions import lit,unix_timestamp
-import time
-import datetime
-
-def sendToPBI (data):
-  data_str = data
-  newHeaders = {'Content-type': 'application/json'}
-  response = requests.post('YOUR PUSH URL',
-                         data=data_str,
-                         headers=newHeaders)
-  return print("Status code: ", response.status_code)
-
-from pyspark.sql.functions import lit,unix_timestamp
-import time
-import datetime
-
-
-def convertdf (df):
-  df=df.na.fill("Null")
-  df2 = df.toJSON().collect()
-  str1 = ''.join(df2)
-  str1=str1.replace("}{","},{") 
-  print("[" + str1 +"]") #this is optional
-  return "[" + str1 +"]" #wrap with array
-  
-def batchstr(df, epoch_id):
-    sendToPBI(convertdf(df))
-    pass
 ```
 
-### Now push stream data to Power BI 
+### 4. When deploy model, you need to tell how to score new data with your trained model in "score.py" file
+If you want the model to be visible in Power BI, you need to define how input schema is look like 
+Full script can find [here](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/scoring.py)
+
+Back to main script **DeployModel.ipynb**, here is how to tell AzureML to use scoring.py file with your registered model. 
+
+**Note that version of H2O should be the same with your trained model**
+
 ```python
-(agg.orderBy(col('count').desc())
-  .writeStream
-  .outputMode('complete')
-  .option("checkpointLocation", checkpoint)
-  .foreachBatch(batchstr)
-  .start().awaitTermination())
-  ```
+from azureml.core.model import InferenceConfig
+from azureml.core.environment import Environment
+from azureml.core.conda_dependencies import CondaDependencies
 
-### In Power BI Service 
-You can now create streaming chart into a Dashboard, by adding tile to your dashboard and select **Custom Streaming Data** 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addtile.PNG) 
+# Create the environment
 
-Then select dataset, you've just created:
+conda_dep = CondaDependencies()
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/addDataset.PNG) 
+# Define the packages needed by the model and scripts
+#conda_dep.add_conda_package("tensorflow")
+conda_dep.add_conda_package("numpy")
+conda_dep.add_conda_package("pandas")
+# You must list azureml-defaults as a pip dependency
+conda_dep.add_pip_package("azureml-defaults")
+# H2O version should be the same as the one you use when train model 
+conda_dep.add_pip_package("h2o==3.32.0.4")
+#conda_dep.add_pip_package("gensim")
 
-Select visualization type yopu want to add on a dashboard:
+# Adds dependencies to PythonSection of myenv
+myenv.python.conda_dependencies=conda_dep
+myenv.inferencing_stack_version='latest'
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/vizType.PNG) 
+for pip_package in ["inference_schema"]:
+    myenv.python.conda_dependencies.add_pip_package(pip_package)
 
-Once it's done, you will see your chart with lightning icon indicate that this visual is real time streaming. 
+inference_config = InferenceConfig(entry_script="scoring.py",   
+                                   environment=myenv)
+```
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/01_Real%20Time%20Dashboard%20with%20Azure%20Databrick/image/result.PNG) 
+### 5. Deploy to AzureML using ACI 
+```python
+from azureml.core.webservice import AciWebservice, Webservice
+model = Model(ws, name='CustomerSegment')
+deployment_config = AciWebservice.deploy_configuration(cpu_cores = 1, memory_gb = 1)
+service = Model.deploy(ws, "customersegment", [model], inference_config, deployment_config)
+service.wait_for_deployment(show_output = True)
+print(service.state)
+print("scoring URI: " + service.scoring_uri)
+``` 
+Once it succeeded, you will get scoring URI, so you can test to call the service 
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/image/URI.png "WebService URI") 
+
+
+## Using Deployed Model in Power BI Desktop (AI Insight)
+Once your model is deployed to AzureML, now you can see your model in Power Query Editor.
+
+### Connect your new data to Power BI Desktop
+Connect you data to Power BI the select Transform. It will bring you to Power Query Editor. 
+From Power Query Editor, in AI Insight ribbon select Azure Machine Learning.
+
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/image/pbi1.png "Connect data") 
+
+### Select your model from Azure Machine Learning 
+Now you will see list of the models deployed on Azure Machine Learning workspaces that you have access permission. 
+Select model you desire.
+Selected model will automatically match columns with your data (here is where the schema we defined in score.py file is used for) 
+
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/image/AzureMLinPBI.png "Connect data") 
+
+After you click OK, it will trigger model and create a new column with predicted result name **AzureML.customersegment**
+
+![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/image/scoredColumn.png "Connect data") 
 
 **Thank You** 
