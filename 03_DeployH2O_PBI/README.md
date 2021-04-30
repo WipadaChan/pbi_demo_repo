@@ -13,7 +13,7 @@ This demo will show you how to deploy existing Machine Learning model that train
 ## Train K-Mean Clustering Model with H2O
 Here is the example code for training H2O model. You can find the full notebook in below path 
 
-![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/Customer Segment.ipynb "Customer Segment with H2O") 
+https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/Customer%Segment.ipynb "Customer Segment with H2O") 
 
 
 
