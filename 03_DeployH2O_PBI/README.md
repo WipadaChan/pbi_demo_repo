@@ -5,7 +5,7 @@ This demo will show you how to deploy existing Machine Learning model that train
 
 **For pickle model**
 
-If you have trained model in pickle format from your local machine, you can find example code [here](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/pickleModel/DeployModelToAzureML-PBI.ipynb)
+If you have trained model in pickle format from your local machine, you can find full example code [here](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/pickleModel/DeployModelToAzureML-PBI.ipynb)
 
 
 ## Pre-requisite:
