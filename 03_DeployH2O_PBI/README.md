@@ -2,11 +2,11 @@
 This demo will show you how to deploy existing Machine Learning model that trained from H2O to Azure ML. Then use deployed model to score new data in Power BI.
 
 ## Pre-requisite:
-#### 1. Azure ML Workspace.
+**1. Azure ML Workspace.**
 ![alt text](https://docs.microsoft.com/en-us/azure/machine-learning/media/how-to-manage-workspace/create-workspace.gif  "Create azure ml") 
 
-#### 2. Trained H2O model 
-#### 3. Enable Power BI user to access AzureML (by add user via IAM of AzureML Workspace and give a Reader Role)
+**2. Trained H2O model**
+**3. Enable Power BI user to access AzureML (by add users via IAM in AzureML Workspace and give a Reader Role to that users)**
  
 
 ## Train K-Mean Clustering Model with H2O
