@@ -15,8 +15,8 @@ Here is an example code for model training with H2O. You can find the full noteb
 [Create Customer Segment Model with H2O](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/Customer%20Segment.ipynb)
 
 
-### Key I would like to point here is location of the train model in your local machine.
-This will be the location where you need to use in model deployment. 
+### Key I would like to point here is location of the trained model in your local machine.
+This will be a location where you need to use when deployment model to AzureML. 
 
 ```python
 # Save Model
@@ -24,16 +24,16 @@ path = 'H2o'
 model_path = h2o.save_model(model=h2o_km, path=path, force=True)
 print(model_path)
 ```
-Here is the path where H2O model is stored 
+Here is the path where H2O model is stored in my example
 "..\H2o\KMeans_model_python_1619773255297_1"
 
 
-## Deploy Model to Azure ML and make it accessible by Power BI
-The step below will consist of:
+## Deploy Model to Azure ML and make it accessible via Power BI
+**The step below will consist of:**
 1. Connecting to AzureML workspace
 2. Register Model
 3. Prepare Docker and dependency library
-4. Prepare Score.py script
+4. Prepare scoring.py script
 5. Deploy to ACI webservice
 
 Full script can find [here](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/DeployModel.ipynb)
@@ -115,8 +115,8 @@ myenv.docker.base_dockerfile = dockerfile
 
 ```
 
-### 4. When deploy model, you need to tell how to score new data with your trained model in "score.py" file
-If you want the model to be visible in Power BI, you need to define how input schema is look like.
+### 4. When deploy model, you need to tell how to score new data with your trained model in "scoring.py" file
+**If you want the model to be visible in Power BI, you need to define how input schema is look like.**
 
 Full script can find [here](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/scoring.py)
 
@@ -180,7 +180,7 @@ From Power Query Editor, in AI Insight ribbon select Azure Machine Learning.
 ### Select your model from Azure Machine Learning 
 Now you will see list of the models deployed on Azure Machine Learning workspaces that you have access permission. 
 Select model you desire.
-Selected model will automatically match columns with your data (here is where the schema we defined in score.py file is used for) 
+Selected model will automatically match columns with your data (here is where the schema we defined in scoring.py file is used for) 
 
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/image/AzureMLinPBI.png "Connect data") 
 
