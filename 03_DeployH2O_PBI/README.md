@@ -116,12 +116,13 @@ myenv.docker.base_dockerfile = dockerfile
 ```
 
 ### 4. When deploy model, you need to tell how to score new data with your trained model in "score.py" file
-If you want the model to be visible in Power BI, you need to define how input schema is look like 
+If you want the model to be visible in Power BI, you need to define how input schema is look like.
+
 Full script can find [here](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/scoring.py)
 
 Back to main script **DeployModel.ipynb**, here is how to tell AzureML to use scoring.py file with your registered model. 
 
-**Note that version of H2O should be the same with your trained model**
+***Note that version of H2O should be the same with your trained model**
 
 ```python
 from azureml.core.model import InferenceConfig
