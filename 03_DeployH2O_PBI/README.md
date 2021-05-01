@@ -1,5 +1,10 @@
-# Deploy H2O Model to Azure ML and Use with Power BI
+# Deploy trained model to Azure ML and use Power BI to score new data.
+Power BI allow collaboration between data scientist and business users, where data scientist can share their trained machine learning model that built in AzureML. Alternatively, you may have trained model built locally or other place than AzureML and you want to share them with business users. 
+
 This demo will show you how to deploy existing Machine Learning model that trained from H2O to Azure ML. Then use deployed model to score new data in Power BI.
+
+**For pickle model**
+If you have trained model in pickle format from your local machine, you can find example code [here](https://github.com/WipadaChan/pbi_demo_repo/blob/master/03_DeployH2O_PBI/pickleModel/DeployModelToAzureML-PBI.ipynb)
 
 ## Pre-requisite:
 **1. Azure ML Workspace.**
