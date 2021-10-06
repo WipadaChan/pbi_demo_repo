@@ -12,16 +12,16 @@ In this demo will show how to Push data into a Power BI dataset, follow the step
 
 **2. Azure Active Directory (Azure AD)**
 
-    1. Create an app-register with the following [link](https://app.powerbi.com/apps)
+1. Create an app-register with the following [link](https://app.powerbi.com/apps)
     As we will call API to interact with dataset, so we need Dataset Read Write permission.
 
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/04_PowerBI_REST_API/image/appregis.png "App Registry") 
 
-    2. Take note of your Application ID 
+2. Take note of your Application ID 
 
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/04_PowerBI_REST_API/image/copyAppID.png "Copy App ID")
 
-    3. Login to Azure Portal we need to generate Secret key for our Application:
+3. Login to Azure Portal we need to generate Secret key for our Application:
        - From Azure Portal-->Go to Azure Active Directory --> App regristration: You will see App that you just created.
 
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/04_PowerBI_REST_API/image/appcreated.png "App created") 
