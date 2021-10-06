@@ -1,7 +1,8 @@
 # Using Python with Power BI REST API.
 Power BI REST API allow you to perform management tasks on Power BI objects like reports, datasets, and workspaces. You can try Power BI REST API with no-code option [here](https://youtu.be/fXbJeIY2CgE)
+
 Personally I would love to work with Python, where the important part to using Python with Power BI REST API is authentication. 
-[Here the reference I found on Authentication](https://bitbucket.org/omnistream/powerbi-api-example/src/master/example.py)
+Here the reference I found on [Authentication](https://bitbucket.org/omnistream/powerbi-api-example/src/master/example.py)
 
 
 In this demo will show how to Push data into a Power BI dataset, follow the step from this [tutorial](https://docs.microsoft.com/en-us/power-bi/developer/automation/walkthrough-push-data)
@@ -10,19 +11,23 @@ In this demo will show how to Push data into a Power BI dataset, follow the step
 **1. Power BI Account with Pro license**
 
 **2. Azure Active Directory (Azure AD)**
+
     1. Create an app-register with the following [link](https://app.powerbi.com/apps)
     As we will call API to interact with dataset, so we need Dataset Read Write permission.
 
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/04_PowerBI_REST_API/image/appregis.png "App Registry") 
 
-    B. Take note of your Application ID 
+    2. Take note of your Application ID 
+
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/04_PowerBI_REST_API/image/copyAppID.png "Copy App ID")
 
-    C. Login to Azure Portal we need to generate Secret key for our Application:
+    3. Login to Azure Portal we need to generate Secret key for our Application:
        - From Azure Portal-->Go to Azure Active Directory --> App regristration: You will see App that you just created.
+
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/04_PowerBI_REST_API/image/appcreated.png "App created") 
 
        - Go to Certificate & Secret --> New Client secret and give the name and expired period you want. 
+
 ![alt text](https://github.com/WipadaChan/pbi_demo_repo/blob/master/04_PowerBI_REST_API/image/createClientSecret.png "createClientSecret") 
 
 
@@ -37,7 +42,7 @@ You can find full example code [here](https://github.com/WipadaChan/pbi_demo_rep
 
 ## Step:
 ### 1. Get Authentication Token
-As App register use for calling Power BI REST API has delegate permission, so it require username and password for your Azure AD account. 
+As App register used for calling Power BI REST API has delegate permission, so it require username and password for your Azure AD account. 
 Becareful not to storing your password here. 
 
 ```python
@@ -60,7 +65,6 @@ def get_access_token(application_id, application_secret, user_id, user_password)
 access_token = get_access_token(application_id,application_secret,user_id,user_password)
 ```
 
-## Step:
 ### 2. Create dataset using Push Dataset API
 Once you got a token, you can now call the REST API. We first create a dataset. With 'https://api.powerbi.com/v1.0/myorg/datasets' it will create dataset on My Workspace of your account. If you want to create dataset to specific workspace you need to use 'https://api.PowerBI.com/v1.0/myorg/groups/{GROUP_ID}/datasets' where GROUP_ID is your workspace ID that you can find in the URL when browsing to the 
 workspace.
@@ -139,7 +143,6 @@ If it created fine you will got below status:
 
 I extract Dataset ID from response result and table name for use in Add row step.
 
-## Step:
 ### 3. Add row to Power BI table
 This step will add 2 new rows to Power BI Dataset we just created. 
 
